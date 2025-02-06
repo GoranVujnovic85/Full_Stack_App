@@ -5,7 +5,8 @@
 const express = require('express');
 const app = express();
 require('dotenv').config();
-const { sequelize } = require('./config/database');                                 // Import the Sequelize instance
+const { sequelize } = require('./config/database');                                                       // Import the Sequelize instance
+const cors = require('cors');
 
 // This function is used to authenticate the user using a JWT token
 const { authenticateToken } = require('./middlewares/authMiddleware');   
@@ -13,8 +14,12 @@ const { authenticateToken } = require('./middlewares/authMiddleware');
 
 
 // Middleware
+app.use(cors({
+  origin: 'http://localhost:8080',                                                          // Only allow requests from the frontend server
+
+}));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));                                     // Enables the display of images
+app.use('/uploads', express.static('uploads'));                                                           // Enables the display of images
 
 
 // Import routes
