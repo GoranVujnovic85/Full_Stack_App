@@ -6,6 +6,7 @@
         <li><router-link to="/order">Dish</router-link></li>
         <li><router-link to="/payments">Payments</router-link></li>  
         <li><router-link to="/contact">Contact</router-link></li>
+        <li><router-link to="/login">Log In</router-link></li>
       </ul>
     </nav>
     <router-view></router-view> 

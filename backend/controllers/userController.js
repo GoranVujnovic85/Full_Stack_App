@@ -7,37 +7,66 @@ const { User } = require('../models');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
 
 class UserController {
+    
+        // Functionality for user authentication
+        async authenticateUser(email, password) {
+            try {
+                // Check if email and password are entered
+                if (!email || !password) {
+                    throw new Error('Email and password are required.');
+                }
 
-    // Functionality for user authentication
-    async authenticateUser(email, password) {
-        try {
-            // Check if email and password are entered
-            if (!email || !password) {
-                throw new Error('Email and password are required.');
+                // Search for users by email
+                const user = await User.findOne({ where: { email } });
+
+                if (!user) {
+                    throw new Error('Invalid credentials.');
+                }
+
+                // Comparison of the entered password with the encrypted password in the database
+                const isMatch = await bcrypt.compare(password, user.password);
+
+                if (!isMatch) {
+                    throw new Error('Invalid credentials.');
+                }
+
+                return user;  // Return the user if the data is correct
+            } catch (error) {
+                throw error;  // Throw an error if something goes wrong
             }
-
-            // Search for users by email
-            const user = await User.findOne({ where: { email } });
-
-            if (!user) {
-                throw new Error('Invalid credentials.');
-            }
-
-            // Comparison of the entered password with the encrypted password in the database
-            const isMatch = await bcrypt.compare(password, user.password);
-
-            if (!isMatch) {
-                throw new Error('Invalid credentials.');
-            }
-
-            return user;  // Return the user if the data is correct
-        } catch (error) {
-            throw error;  // Throw an error if something goes wrong
         }
-    }
-
+    
+        async login(req, res) {
+            try {
+            const { email, password } = req.body;
+            const user = await User.findOne({ where: { email } });
+        
+            if (!user) {
+                return res.status(401).json({ message: "Invalid login information" });
+            }
+        
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: "Invalid login information" });
+            }
+        
+            const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+                expiresIn: "24h",
+            });
+        
+            res.json({ token, role: user.role });
+            } catch (error) {
+            console.error("Login error:", error);
+            res.status(500).json({ message: "Server error" });
+            }
+        }
+    
     async createUser(req, res) {
         try {
+
+            console.log("sta mi ovde dajes");
+            console.log(req.body); // 
+
             const { username, email, password, role } = req.body;
     
             if (!username || !email || !password) {
@@ -46,8 +75,15 @@ class UserController {
     
             // Encrypt the password before saving it
             const hashedPassword = await bcrypt.hash(password, 10);
+
+            // If the user has not sent a roll, we set "user"
+            const newUser = await User.create({ 
+                username, 
+                email, 
+                password: hashedPassword, 
+                role: role || "user" 
+            });
     
-            const newUser = await User.create({ username, email, password: hashedPassword, role });
     
             return successResponse(res, "User created successfully.", newUser, 201);
         } catch (error) {

@@ -31,6 +31,8 @@ publicRouter.post('/login', async (req, res) => {
     }
 });
 
+publicRouter.post('/login', userController.login.bind(userController));
+
 // Registration route for user creation
 publicRouter.post('/register', userController.createUser.bind(userController)); // Registration
 
